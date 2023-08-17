@@ -77,6 +77,8 @@ do
 	"nolcms" )	NCMS=NO;;
 	"staticlcms" )	STATIC_CMS=LittleCMS;;
 	"gtk1" )	GTK=1;;
+	"haiku" )	OS="Haiku"
+				GTK=3;;
 	"gtk"[23]* )	GTK=2
 			[ "$A" != "${A#gtk3}" ] && GTK=3
 			# Override minor version of installed GTK+
@@ -162,6 +164,7 @@ Usage: ./configure [OPTION] ... [VAR=VALUE] ...
 Options:
 
 win .............. Configure for Windows MinGW / MSYS
+haiku............. Configure for Haiku and GTK+3
 gtk1 ............. Configure for GTK+1
 gtk2 ............. Configure for GTK+2
 gtk2.VER ......... Configure for GTK+2, minor version VER
@@ -249,6 +252,9 @@ fi
 
 if [ -n "$OS" ] ; then
 	: # Do nothing
+elif [ "$OSTYPE" = "haiku" ] ; then
+	OS="Haiku"
+	GTK=3
 elif [ "$OSTYPE" = "msys" ] ; then
 	OS="MinGW/MSYS"
 elif [ "$OSTYPE" != "${OSTYPE#darwin}" ] ; then
@@ -274,17 +280,28 @@ MAKE_DIRS=src
 
 ### Setup directories
 
-if [ "$OS" != "${OS#MinGW/}" ]
+if [ "$OS" == "Haiku" ]
 then
-	EXEEXT=".exe"
-	MT_PREFIX="${MT_PREFIX-/c/Program Files/mtPaint}"
+	# Haiku is a single-user OS so paths are global
+	MT_PREFIX=
+	MT_DATAROOT="~/config/settings/mtpaint"
+	MT_BINDIR="~/config/non-packaged/bin"
+	MT_DOCDIR="~/config/non-packaged/data"
+	MT_MANDIR="~/config/non-packaged/data/man"
 else
-	MT_PREFIX="${MT_PREFIX-/usr/local}"
+	if [ "$OS" != "${OS#MinGW/}" ]
+	then
+		EXEEXT=".exe"
+		MT_PREFIX="${MT_PREFIX-/c/Program Files/mtPaint}"
+		MT_PREFIX=
+	else
+		MT_PREFIX="${MT_PREFIX-/usr/local}"
+	fi
+	MT_BINDIR="${MT_BINDIR:-$MT_PREFIX/bin}"
+	MT_DATAROOT="${MT_DATAROOT:-$MT_PREFIX/share}"
+	MT_DOCDIR="${MT_DOCDIR:-$MT_DATAROOT/doc/mtpaint}"
+	MT_MANDIR="${MT_MANDIR:-$MT_DATAROOT/man}"
 fi
-MT_BINDIR="${MT_BINDIR:-$MT_PREFIX/bin}"
-MT_DATAROOT="${MT_DATAROOT:-$MT_PREFIX/share}"
-MT_DOCDIR="${MT_DOCDIR:-$MT_DATAROOT/doc/mtpaint}"
-MT_MANDIR="${MT_MANDIR:-$MT_DATAROOT/man}"
 if [ "$OS" != "${OS#MinGW/}" ]
 then
 	MT_LOCDIR="${MT_LOCDIR:-$MT_BINDIR/locale}"
@@ -317,7 +334,7 @@ fi
 
 INCLUDES=
 LIBS=
-if [ "$OS" != "${OS%GNU/Linux}" ] || [ "$OS" = "Darwin" ]
+if [ "$OS" != "${OS%GNU/Linux}" ] || [ "$OS" = "Darwin" ] || [ "$OS" = "Haiku" ]
 then
 	CC=${CC:-`which ${MT_HOST:+$MT_HOST-}gcc`}
 	PKG_CONFIG=${PKG_CONFIG:-${MT_HOST:+$MT_HOST-}pkg-config}
@@ -644,6 +661,10 @@ if [ "$MT_LANG" = YES ]
 then
 	HAVE_FUNC "gettext" || LIB_NAME intl
 	DEFS="$DEFS -DU_NLS -DMT_LANG_DEST='\"$MT_PO\"'"
+fi
+if [ "$OS" == "Haiku" ]
+then
+	DEFS="$DEFS -D_HAIKU_"
 fi
 
 # !!! Would be nice to subtract MT_SLIBS from MT_DLIBS first
