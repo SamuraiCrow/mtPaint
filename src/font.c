@@ -600,7 +600,7 @@ static void font_dir_search(FT_Library *ft_lib, int dirnum, FILE *fp, char *dir,
 
 		if (stat(full_name, &sc.buf) < 0) continue;	// Get file details
 
-#ifdef WIN32
+#if defined(WIN32) || defined(_HAIKU_)
 		if (S_ISDIR(sc.buf.st_mode))
 #else
 		if ((ep->d_type == DT_DIR) || S_ISDIR(sc.buf.st_mode))
