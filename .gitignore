@@ -1,0 +1,5 @@
+src/*.o
+src/mtpaint.exe
+src/mtpaint
+src/graphics
+_conf.txt

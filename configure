@@ -4,8 +4,8 @@
 
 echo
 
-MT_V="3.50.09"
-MT_DATE="2021-04-03"
+MT_V="3.51.1"
+MT_DATE="2023-10-17"
 
 MT_VERSION="mtPaint $MT_V"
 MT_LANG=NO
@@ -283,11 +283,8 @@ MAKE_DIRS=src
 if [ "$OS" == "Haiku" ]
 then
 	# Haiku is a single-user OS so paths are global
-	MT_PREFIX=
-	MT_DATAROOT="~/config/settings/mtpaint"
-	MT_BINDIR="~/config/non-packaged/bin"
-	MT_DOCDIR="~/config/non-packaged/data"
-	MT_MANDIR="~/config/non-packaged/data/man"
+	MT_PREFIX="${MT_PREFIX-/home/config/non-packaged}"
+	MT_DATAROOT="${MT_DATAROOT:-$MT_PREFIX/data/mtpaint}"
 else
 	if [ "$OS" != "${OS#MinGW/}" ]
 	then
@@ -297,11 +294,11 @@ else
 	else
 		MT_PREFIX="${MT_PREFIX-/usr/local}"
 	fi
-	MT_BINDIR="${MT_BINDIR:-$MT_PREFIX/bin}"
 	MT_DATAROOT="${MT_DATAROOT:-$MT_PREFIX/share}"
-	MT_DOCDIR="${MT_DOCDIR:-$MT_DATAROOT/doc/mtpaint}"
-	MT_MANDIR="${MT_MANDIR:-$MT_DATAROOT/man}"
 fi
+MT_BINDIR="${MT_BINDIR:-$MT_PREFIX/bin}"
+MT_DOCDIR="${MT_DOCDIR:-$MT_DATAROOT/doc/mtpaint}"
+MT_MANDIR="${MT_MANDIR:-$MT_DATAROOT/man}"
 if [ "$OS" != "${OS#MinGW/}" ]
 then
 	MT_LOCDIR="${MT_LOCDIR:-$MT_BINDIR/locale}"
